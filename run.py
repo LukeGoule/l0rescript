@@ -2,6 +2,7 @@ import random, sys, os
 
 debugging = False
 linux     = True
+file      = ""
 
 argc = len(sys.argv)
 if (argc > 1):
@@ -16,6 +17,18 @@ if (argc > 1):
 				linux = True
 			elif (arg.split("=")[1] == "off"):
 				linux = False
+		elif (arg.split("=")[0] == "--f"):
+			try:
+				file = arg.split("=")[1];
+				try:
+					with open("scripts/"+file, "r") as f____:
+						f____.close()
+				except:
+					print("File doesn't exist!")
+					quit()
+			except:
+				print("Arg --f set wrong")
+				quit()
 
 info_char = '@'
 comment_char = '#'
@@ -282,5 +295,8 @@ if __name__ == "__main__":
 		BOLD = ""
 		UNDERLINE = ""
 
-	script = FGet("test.lre")
+	if (file == ""):
+		script = FGet("test.lre")
+	else:
+		script = FGet(file)
 	Parse(script)
