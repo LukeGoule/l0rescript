@@ -1,0 +1,10 @@
+@name: Test script
+@author: H4iry
+@linux: &linux
+@debug: &dbg
+
+print "Hello, welcome to l0rescript"
+
+vi rnd=&r
+route r (print "&gRandom:&b &r&e")
+call (r)
