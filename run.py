@@ -1,8 +1,11 @@
 import random, sys, os
 
 debugging = False
-linux     = True
+linux     = False
 file      = ""
+
+L0reVersion = "0.1"
+L0reVersionHandle = "_Apple"
 
 argc = len(sys.argv)
 if (argc > 1):
@@ -35,8 +38,11 @@ comment_char = '#'
 variables = []
 routines = []
 
-var_a = 'v'
-var_b = 'i'
+var_a   = 'v'
+var_b   = 'i'
+
+var_s_a = 'v'
+var_s_b = 's'
 
 pr_syn = "Unrecognised syntax"
 pr_vsyn = "Unrecognised variable syntax"
@@ -163,6 +169,27 @@ def GetIntVar(l):
 		variables += [[v_n, int(v_v.replace("\n", ""))]]
 		return v_n + "::" + v_v
 
+def GetStrVar(l):
+	v_s = l.split(" ")
+	v_n = ""
+	v_v = 0
+	global variables
+	try:
+		if (v_s[0] == "vs"):
+			try:
+				tsplit = v_s[1].split("=")
+				v_n = tsplit[0]
+				v_v = GetStr(l)
+			except:
+				return "<INVALID>"
+		else:
+			return "<INVALID>"
+	except:
+		return "<INVALID>"
+	finally:
+		variables += [[v_n, str(v_v.replace("\n", ""))]]
+		return v_n + "::" + v_v
+
 def BuildRoutine(l):
 	route_out = ""
 	route_name = ""
@@ -207,10 +234,16 @@ def FindArgs(l):
 
 	return args_out # eg generic_routine("abc", "def") -> ["abc", "def"]
 
+def CallCmd(l):
+	os.system(l)
+
 
 def Parse(filedata):
-
-	sname = "nullname"
+	sname = ""
+	if (not file == ""):
+		sname = file
+	else:
+		sname = "test.lre"
 	script = filedata
 	linen = 0
 	problem = ""
@@ -221,6 +254,11 @@ def Parse(filedata):
 		linen += 1
 		rand = Ran()
 
+		#check whitespace
+		if (line.isspace()):
+			dprint("Detected whitespace, skipping.")
+			continue
+
 		line = line.replace("&r", str(random.randint(0,10000)))
 		line = line.replace("&n", str(sname))
 		line = line.replace("&r", str(FAIL))
@@ -229,6 +267,10 @@ def Parse(filedata):
 		line = line.replace("&e", str(ENDC))
 		line = line.replace("&linux", str(linux))
 		line = line.replace("&dbg", str(debugging))
+		line = line.replace("&version", str(L0reVersion + L0reVersionHandle))
+
+		if (line.find("user_input") >= 1):
+			line = line.replace("user_input", raw_input())
 
 		sp_split = line.split(" ")
 
@@ -237,7 +279,7 @@ def Parse(filedata):
 			print("Info: " + line[1:].replace("\n", ""))
 			continue
 		elif line[0] == comment_char:
-			print("Comment: " + line[1:].replace("\n", ""))
+			#print("Comment: " + line[1:].replace("\n", ""))
 			continue
 		elif line.split(" ")[0] == "vi": #varint declaration start
 			temp = GetIntVar(line)
@@ -245,6 +287,13 @@ def Parse(filedata):
 				dprint("stored var int " + temp.split("::")[0] + " = " + temp.split("::")[1])
 			else:
 				dprint("could not store variable ", FAIL)
+				problem = pr_vsyn
+		elif line.split(" ")[0] == "vs":
+			temp = GetStrVar(line)
+			if (not temp == "<INVALID>"):
+				dprint("stored var int " + temp.split("::")[0] + " = " + temp.split("::")[1])
+			else:
+				dprint("could not store string variable ", FAIL)
 				problem = pr_vsyn
 		elif sp_split[0] == "print":
 			temp = GetStr(line)
@@ -265,6 +314,17 @@ def Parse(filedata):
 				break;
 		elif sp_split[0] == "call":
 			CallRoutine(line)
+		elif line.split("(")[0] == "system":
+			CallCmd(GetStr(line))
+		elif sp_split[0] == "include":
+			temp = GetStrAB(line, "<", ">")
+			try:
+				open("scripts/" + temp, "r")
+			except:
+				print("Line %s: File doesn't exist! (%s)" % (linen, temp))
+				exit()
+
+			fdat = Parse(FGet(temp))
 		else:
 			problem = pr_syn
 			break

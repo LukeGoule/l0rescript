@@ -1,10 +1,19 @@
+include <std.lre>
+
 @name: Test script
 @author: H4iry
 @linux: &linux
 @debug: &dbg
 
-print "Hello, welcome to l0rescript"
+print "Hello, welcome to l0re-&version"
+print "Script name: &n"
+print "Std version: &v:stdver"
 
 vi rnd=&r
 route r (print "&gRandom:&b &r&e")
 call (r)
+
+vs s="ABC DEF"
+print "&v:s"
+
+# system("run.py")  infinite loop
